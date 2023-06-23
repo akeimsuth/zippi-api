@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const admin = require("firebase-admin");
+const moment = require('moment');
 const { Timestamp } = require('firebase-admin/firestore');
 const db = admin.firestore();
 // const usersRef = db.collection("users");
@@ -14,7 +15,16 @@ router.get('/all/:userId', async function(req, res, next) {
         receipts.forEach(receipt => {
             allReceipts.push(receipt.data());
         });
-        res.status('200').send({ 'data': allReceipts });
+        var receiptsAll = allReceipts.reduce(function (acc, obj) {
+            console.log('Values: ', acc, obj);
+            var key = obj.date;
+            if (!acc[key]) {
+              acc[key] = [];
+            }
+            acc[key].push(obj);
+            return acc;
+          }, {});
+        res.status('200').send({ 'data': receiptsAll });
     } catch (error) {
         res.status('500').send({ 'error': error });
     }
@@ -38,6 +48,7 @@ router.post('/create', async function(req, res, next) {
         const newReceipt = {
           id: docRef.id,
           ...req.body,
+          date: moment(Date.now()).format('YYYY-MM-DD'),
           createdAt: Timestamp.now()
         };
         await docRef.set(newReceipt);
