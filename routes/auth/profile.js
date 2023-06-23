@@ -7,9 +7,13 @@ const usersRef = db.collection("users");
 
 router.get('/', async (req, res) => {
     try {
-        const docId = req.query.docId;
-        const user = await usersRef.doc(docId).get();
-        res.status('200').send({ 'data': user.data() });
+        let userData;
+        const userId = req.query.userId;
+        const user = await usersRef.where('userId', '==', userId).get();
+        user.forEach((val) => {
+            userData = val.data();
+        })
+        res.status('200').send({ 'data': userData });
     } catch (error) {
         res.status('500').send({ 'error': error });
     }
